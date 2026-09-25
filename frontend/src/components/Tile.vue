@@ -1,179 +1,130 @@
 <script>
+import { tileSrc, tileName } from "@/services/TileSet.js";
+
 export default {
   name: "Tile",
   props: {
-    tile: {
-      type: Object,
-      required: true
-    },
-    selectable: {
-      type: Boolean
-    },
-    chosen: {
-      type: Boolean
-    },
-    hint: {
-      type: Boolean
-    }
+    tile: { type: Object, required: true },
+    pos: { type: Object, required: true },
+    index: Number,
+    free: Boolean,
+    chosen: Boolean,
+    hint: Boolean,
+    shake: Boolean,
+    highlightFree: Boolean,
   },
-  methods: {
-    getSrc(type) {
-      switch (type) {
-        case 0:
-          return "/src/assets/cars/lada.png"
-        case 1:
-          return "/src/assets/cars/moskvich.png"
-        case 2:
-          return "/src/assets/cars/uaz.png"
-        case 3:
-          return "/src/assets/cars/honda.png"
-        case 4:
-          return "/src/assets/cars/infinity.png"
-        case 5:
-          return "/src/assets/cars/mitsubishi.png"
-        case 6:
-          return "/src/assets/cars/lexus.png"
-        case 7:
-          return "/src/assets/cars/mazda.png"
-        case 8:
-          return "/src/assets/cars/nissan.png"
-        case 9:
-          return "/src/assets/cars/tayota.png"
-        case 10:
-          return "/src/assets/cars/chevrolet.png"
-        case 11:
-          return "/src/assets/cars/ford.png"
-        case 12:
-          return "/src/assets/cars/tesla.png"
-        case 13:
-          return "/src/assets/cars/audi.png"
-        case 14:
-          return "/src/assets/cars/bmw.png"
-        case 15:
-          return "/src/assets/cars/mercedes.png"
-        case 16:
-          return "/src/assets/cars/porsche.png"
-        case 17:
-          return "/src/assets/cars/volkswagen.png"
-        case 18:
-          return "/src/assets/cars/opel.png"
-        case 19:
-          return "/src/assets/cars/kia.png"
-        case 20:
-          return "/src/assets/cars/hyundai.png"
-        case 21:
-          return "/src/assets/cars/ferrari.png"
-        case 22:
-          return "/src/assets/cars/lamborghini.png"
-        case 23:
-          return "/src/assets/cars/rollsroyce.png"
-        case 24:
-          return "/src/assets/cars/bugatti.png"
-        case 25:
-          return "/src/assets/cars/jaguar.png"
-        case 26:
-          return "/src/assets/cars/skoda.png"
-        case 27:
-          return "/src/assets/cars/peugeot.png"
-        case 28:
-          return "/src/assets/cars/landrover.png"
-        case 29:
-          return "/src/assets/cars/citroen.png"
-        case 30:
-          return "/src/assets/cars/renault.png"
-        case 31:
-          return "/src/assets/cars/cadillac.png"
-        case 32:
-          return "/src/assets/cars/fiat.png"
-        case 33:
-          return "/src/assets/cars/jeep.png"
-        case 34:
-          return "/src/assets/cars/subaru.png"
-        case 35:
-          return "/src/assets/cars/volvo.png"
-        default:
-          return "/src/assets/empty.png"
-      }
+  emits: ["choose"],
+  computed: {
+    src() {
+      return tileSrc(this.tile.type);
     },
-    getX() {
-      return this.tile['x'] * 89 + this.tile['z'] * 20
+    name() {
+      return tileName(this.tile.type);
     },
-    getY() {
-      return this.tile['y'] * 109 + 80 - this.tile['z'] * 20
-    },
-    getZIndex() {
-      return Math.floor(this.tile['z'] * 100000 - this.tile['x'] * 100 + this.tile['y'] * 100 + 100000)
-    },
-    getShadowX() {
-      return this.tile['x'] * 89 + this.tile['z'] * 20
-    },
-    getShadowY() {
-      return this.tile['y'] * 109 + 60 - this.tile['z'] * 20
-    },
-    getShadowZIndex() {
-      return Math.floor((this.tile['z'] - 1) * 100000 - this.tile['x'] * 100 + this.tile['y'] * 100 + 100000)
-    },
-    getHintX() {
-      return this.tile['x'] * 89 + this.tile['z'] * 20 + 20
-    },
-    getHintY() {
-      return this.tile['y'] * 109 + 80 - this.tile['z'] * 20
-    }
-  }
-}
+  },
+};
 </script>
 
 <template>
-  <div>
-    <img draggable="false" v-if="selectable && chosen" class="img chosen" :style="{
-      'left': this.getX() + 'px',
-      'top': this.getY() + 'px',
-      'z-index': this.getZIndex()
-    }" :src="getSrc(tile['type'])" @click="$emit('choose', tile)" alt="no"/>
-    <img draggable="false" onmousedown="off" v-else-if="selectable" class="img selectable" :style="{
-      'left': this.getX() + 'px',
-      'top': this.getY() + 'px',
-      'z-index': this.getZIndex()
-    }" :src="getSrc(tile['type'])" @click="$emit('choose', tile)" alt="no"/>
-    <img draggable="false" v-else class="img" :style="{
-      'left': this.getX() + 'px',
-      'top': this.getY() + 'px',
-      'z-index': this.getZIndex()
-    }" :src="getSrc(tile['type'])" alt="no"/>
-    <img draggable="false" class="shadow" src="/src/assets/shadow.png"
-         :style="{ 'left': this.getShadowX() + 'px', 'top': this.getShadowY() + 'px', 'z-index': this.getShadowZIndex() }" alt="no"/>
-    <div v-if="hint" class="hint" :style="{'left': this.getHintX() + 'px','top': this.getHintY() + 'px','z-index': 1000000000}"></div>
+  <div class="tile" :class="{ free, chosen, hint, shake, blocked: highlightFree && !free }" :style="{
+    left: pos.left + 'px',
+    top: pos.top + 'px',
+    zIndex: pos.zIndex,
+    '--i': index,
+  }" :title="name" @click="$emit('choose')">
+    <img :key="tile.type" class="face" draggable="false" :src="src" :alt="name" />
+    <div class="glow"></div>
   </div>
 </template>
 
 <style scoped>
-.img {
+.tile {
   position: absolute;
+  width: 110px;
+  height: 130px;
   user-select: none;
+  -webkit-user-select: none;
 }
 
-.selectable, .chosen {
+.face {
+  display: block;
+  width: 110px;
+  height: 130px;
+  pointer-events: none;
+  animation: flip 0.35s ease;
+  transition: filter 0.2s;
+}
+
+@keyframes flip {
+  from {
+    transform: rotateY(90deg);
+  }
+}
+
+.glow {
+  position: absolute;
+  left: 20px;
+  top: 1px;
+  width: 89px;
+  height: 108px;
+  border-radius: 6px;
+  pointer-events: none;
+  transition: box-shadow 0.15s, background-color 0.15s;
+}
+
+.free {
   cursor: pointer;
 }
 
-.selectable:hover,
-.chosen {
-  filter: brightness(80%)
+.free:hover .face {
+  filter: brightness(0.93);
 }
 
-.shadow {
-  position: absolute;
-  opacity: 40%;
-  filter: blur(5px);
-  user-select: none;
-  pointer-events: none;
+.free:hover .glow {
+  box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.35);
 }
 
-.hint {
-  position: absolute;
-  width: 92px;
-  height: 112px;
-  border: 3px solid blue;
-  pointer-events: none;
+.blocked .face {
+  filter: brightness(0.62) saturate(0.7);
+}
+
+.chosen .face {
+  filter: brightness(0.9) sepia(0.35) saturate(1.6);
+}
+
+.chosen .glow {
+  box-shadow: inset 0 0 0 3px #f59e0b, 0 0 18px 2px rgba(245, 158, 11, 0.75);
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.hint .glow {
+  animation: hint 0.9s ease-in-out infinite;
+}
+
+@keyframes hint {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 3px #22d3ee, 0 0 10px 1px rgba(34, 211, 238, 0.5);
+  }
+
+  50% {
+    box-shadow: inset 0 0 0 3px #22d3ee, 0 0 26px 6px rgba(34, 211, 238, 0.9);
+  }
+}
+
+.shake {
+  animation: shake 0.35s;
+}
+
+@keyframes shake {
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
 }
 </style>

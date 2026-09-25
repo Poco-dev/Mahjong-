@@ -1,28 +1,37 @@
+<script>
+import Modal from "@/components/Modal.vue";
+
+export default {
+  name: "Lose",
+  components: { Modal },
+  props: {
+    reason: String,
+    canUndo: Boolean,
+    pairsLeft: Number,
+  },
+  emits: ["revert", "reshuffle", "restart", "menu"],
+};
+</script>
+
 <template>
-    <div
-        class="flex flex-col content-between bg-gradient-to-r from-red-500 via-red-900 to-red-500 border-4 rounded-md border-red-900">
-        <div class="text-center mb-5 mt-5">
-            <p class="text-white text-lg font-serif">Упс, вы проиграли!</p>
-        </div>
-        <div class="flex flex-col p-1 ">
-            <div class="flex flex-row">
-                <button type="button" @click="$emit('revert')"
-                    class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Отменить
-                    ход</button>
-
-                <button type="button" @click="$emit('update')"
-                    class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Начать
-                    сначала</button>
-
-            </div>
-
-            <button type="button" @click="$emit('restart')"
-                class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Начать
-                новую игру</button>
-            <button type="button" @click="$emit('reshuffle')"
-                class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Перемешать
-            </button>
-
-        </div>
+  <Modal width="26rem" :closable="false">
+    <div class="text-center mb-5">
+      <div class="text-5xl mb-2">{{ reason === "timeout" ? "⌛" : "🚧" }}</div>
+      <h2 class="text-2xl font-extrabold">{{ reason === "timeout" ? "Время вышло!" : "Ходов больше нет" }}</h2>
+      <p class="text-white/60 text-sm mt-1">
+        <template v-if="reason === 'timeout'">Оставалось всего {{ pairsLeft }} пар. В следующий раз получится!</template>
+        <template v-else>Осталось {{ pairsLeft }} пар, но свободных одинаковых нет. Можно отменить ход или перемешать.</template>
+      </p>
     </div>
+    <div class="flex flex-col gap-2">
+      <template v-if="reason !== 'timeout'">
+        <button class="btn btn-primary" @click="$emit('reshuffle')">🔀 Перемешать <span class="kbd">S</span></button>
+        <button class="btn btn-ghost" :disabled="!canUndo" @click="$emit('revert')">↩️ Отменить ход <span class="kbd">Z</span></button>
+      </template>
+      <div class="grid grid-cols-2 gap-2">
+        <button class="btn" :class="reason === 'timeout' ? 'btn-primary' : 'btn-ghost'" @click="$emit('restart')">🔁 Заново</button>
+        <button class="btn btn-ghost" @click="$emit('menu')">🏠 Меню</button>
+      </div>
+    </div>
+  </Modal>
 </template>
